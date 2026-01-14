@@ -1,6 +1,13 @@
 -- made by controller5256 (on discord and roblox), alt account XxHunterStorm
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
+Rayfield:Notify({
+	Title = "version",
+	Content = "1 idk",
+	Duration = 6.5,
+	Image = 4483362458,
+})
+
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local workspace = game:GetService("Workspace")
