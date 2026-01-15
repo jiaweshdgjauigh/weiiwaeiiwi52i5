@@ -22,6 +22,12 @@ elseif VE == currentVersion then
 		Duration = 6.5,
 		Image = 4483362458,
 	})
+	Rayfield:Notify({
+		Title = "WARNING!!",
+		Content = "IF YOU DO NOT HAVE BKIT, DO NOT EXECUTE THIS SCRIPT UNTIL YOU HAVE BKIT ELSE SOME TABS MIGHT NOT SHOW!",
+		Duration = 10,
+		Image = 4483362458,
+	})
 end
 
 local RunService = game:GetService("RunService")
@@ -233,8 +239,17 @@ Tab:CreateToggle({
 })
 
 
-local deleteEvent = plr:WaitForChild("Backpack"):WaitForChild("Delete"):WaitForChild("Script"):WaitForChild("Event")
-local shovelEvent = plr:WaitForChild("Backpack"):WaitForChild("Shovel"):WaitForChild("Script"):WaitForChild("Event")
+local backpack = plr:WaitForChild("Backpack")
+
+local deleteTool = backpack:FindFirstChild("Delete")
+local deleteEvent = deleteTool
+	and deleteTool:FindFirstChild("Script")
+	and deleteTool.Script:FindFirstChild("Event")
+
+local shovelTool = backpack:FindFirstChild("Shovel")
+local shovelEvent = shovelTool
+	and shovelTool:FindFirstChild("Script")
+	and shovelTool.Script:FindFirstChild("Event")
 
 local function refreshTools()
 	local char = plr.Character
