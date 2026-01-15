@@ -1,6 +1,6 @@
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
-loadstring(game:HttpGet("https://pastebin.com/raw/90Ah2xj8"))()
-local VE = getgenv().Version
+local VE = loadstring(game:HttpGet("https://pastebin.com/raw/90Ah2xj8"))()
+task.wait(0.5) -- make sure script received version
 local currentVersion = "1.0.1"
 if VE ~= currentVersion then
 	Rayfield:Notify({
@@ -13,12 +13,6 @@ elseif VE == currentVersion then
 	Rayfield:Notify({
 		Title = "Up to date",
 		Content = "Version ".. currentVersion,
-		Duration = 6.5,
-		Image = 4483362458,
-	})
-	Rayfield:Notify({
-		Title = "This script is open-source!",
-		Content = "Still, avoid distributing the script around plz",
 		Duration = 6.5,
 		Image = 4483362458,
 	})
