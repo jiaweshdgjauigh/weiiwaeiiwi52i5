@@ -1,12 +1,28 @@
--- made by controller5256 (on discord and roblox), alt account XxHunterStorm
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
-
-Rayfield:Notify({
-	Title = "version",
-	Content = "1 idk",
-	Duration = 6.5,
-	Image = 4483362458,
-})
+loadstring(game:HttpGet("https://pastebin.com/raw/90Ah2xj8"))()
+local VE = getgenv().Version
+local currentVersion = "1.0.1"
+if VE ~= currentVersion then
+	Rayfield:Notify({
+		Title = "OUT OF DATE!!",
+		Content = "UPDATED VERSION: ".. VE .. ", YOUR VERSION: ".. currentVersion,
+		Duration = 6.5,
+		Image = 4483362458,
+	})
+elseif VE == currentVersion then
+	Rayfield:Notify({
+		Title = "Up to date",
+		Content = "Version ".. currentVersion,
+		Duration = 6.5,
+		Image = 4483362458,
+	})
+	Rayfield:Notify({
+		Title = "This script is open-source!",
+		Content = "Still, avoid distributing the script around plz",
+		Duration = 6.5,
+		Image = 4483362458,
+	})
+end
 
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -62,14 +78,14 @@ local event = getPaintEvent()
 local mode = "both \240\159\164\157"
 
 local Window = Rayfield:CreateWindow({
-	Name = "controller5256's private trolling ui",
-	LoadingTitle = "private and cool",
-	LoadingSubtitle = "by controller5256",
+	Name = "Hunterstorm's private trolling ui",
+	LoadingTitle = "private and COOLER THAN BEFORE!!",
+	LoadingSubtitle = "by XxHunterStormBytexX4",
 	ToggleUIKeybind = "K",
 	ConfigurationSaving = { Enabled = true, FileName = "Big Hub" }
 })
 
-local Tab = Window:CreateTab("main", 4483362458)
+local Tab = Window:CreateTab("main", "terminal")
 
 Tab:CreateButton({
 	Name = "infinite yield",
@@ -272,7 +288,147 @@ local Button = Tab:CreateButton({
 	end,
 })
 
-local Tab = Window:CreateTab("settings", 4483362458)
+local Tab = Window:CreateTab("players", "users-round")
+
+local function hasEnlighten(plr)
+	if plr.Backpack and plr.Backpack:FindFirstChild("The Arkenstone") then
+		return true
+	end
+	if plr.Character and plr.Character:FindFirstChild("The Arkenstone") then
+		return true
+	end
+	return false
+end
+local highlights = {}
+local invis = {}
+local function highlight(target, colour)
+	local c :Player = target
+	local character = c.Character
+	if character then
+		local highlight = character:FindFirstChild("enlightenHighlight")
+		if not highlight then
+			local newHighlight = Instance.new("Highlight", character)
+			newHighlight.Name = "enlightenHighlight"
+			newHighlight.FillColor = Color3.new(0, 0.733333, 1)
+			newHighlight.FillTransparency = 0.5
+		end
+	end
+end
+
+local function invisibleAlert(target)
+	local c :Player = target
+	local character = c.Character
+	if character then
+		local function gui()
+			local billboardui = Instance.new("BillboardGui", character)
+			billboardui.Size = UDim2.new(0,200,0,50)
+			billboardui.AlwaysOnTop = true
+			billboardui.Name = "invis"
+			local textLabel = Instance.new("TextLabel", billboardui)
+			textLabel.Text = "(INVIS USER: ".. target.Name.. ")"
+			textLabel.TextScaled = true
+
+			textLabel.RichText = true -- extra bigger text
+			textLabel.TextColor3 = Color3.fromRGB(255, 50, 0)
+			textLabel.FontFace.Bold = true
+			textLabel.BackgroundTransparency = 1
+			textLabel.Size = UDim2.new(1,0,1,0)
+		end
+		local torso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
+		if torso and torso.Transparency == 1 then
+			
+			gui()
+		else
+			local ui = character:FindFirstChild("invis")
+			if ui then
+				ui:Destroy()
+			end
+		end
+		
+	end
+end
+
+local showEnlightens = false
+local showInvis = false
+Tab:CreateToggle({
+	Name = "enlightened users ESP",
+	CurrentValue = false,
+	Flag = "eue",
+	Callback = function(v)
+		showEnlightens = v
+	end
+})
+Tab:CreateToggle({
+	Name = "invisible users ESP(best always on cuz enlightend esp doesnt show invisible enlightend users)",
+	CurrentValue = false,
+	Flag = "dbp",
+	Callback = function(v)
+		showInvis = v
+	end
+})
+task.spawn(function()
+	while task.wait(.5) do
+		if showEnlightens or showInvis then
+			for _, Player in ipairs(game.Players:GetPlayers()) do
+				if Player ~= game.Players.LocalPlayer then
+					if showEnlightens then
+						local hasenli = hasEnlighten(Player)
+						if hasenli then
+							highlight(Player)
+						end
+					else
+						for i, v in ipairs(highlights) do
+							v:Destroy()
+							table.remove(highlights, table.find(highlights, v))
+						end
+						
+					end
+					if showInvis then
+						invisibleAlert(Player)
+					end
+				end
+			end
+		end
+	end
+end)
+
+
+local Tab = Window:CreateTab("Changelogs", "book-open-text")
+local Paragraph = Tab:CreateParagraph({Title = "v1.0.1 (15/01/2026)", Content = [[
+- Added changelogs
+- Fixed spray paint
+- Fixed unanchored rainbow blocks (Bit buggy, will be improved)
+- Added players
+- Added esp for invisible users and enlightened users
+- New icons for the tabs
+- Creds tab
+- Tips tab
+- Added a version checker
+- got complaints of "I DONT HAVE SETTINGS!!" so i moved some setting buttons to main (brax ur either blind or im just better)
+]]})
+
+local Tab = Window:CreateTab("creds", "hammer")
+local Paragraph = Tab:CreateParagraph({Title = "credits", Content = [[
+me (HunterStorm) for creating and writing the whole script
+Sirius for the wonderful optimised ui library (and for the ESP system im going to replace the current system with)
+brax for being a little jerk crying about settings tab not showing
+boona for suggesting a few things
+^ yes u 2 are the only people with the script apart from me
+]]})
+
+local Tab = Window:CreateTab("tips", "book-open-text")
+local Paragraph = Tab:CreateParagraph({Title = "credits", Content = [[
+if u have a tool and ur scared ur going to lose it from clearinv, use infinite yield and do boxreach <number> (or do smth like 20)
+and then start spamming backspace so u keep dropping it, the reach will force u to pick it back up
+and if ur lucky, when the clearinv command is sent, the tool will stay and will not be deleted
+this doesnt guarantee ur tool from being safe BUT it could work
+if it does work, you'd want to remove the reach
+so do noreach or unreach in infinite yield so it removes the reach
+
+sorry if this is confusing ok guys im not good with teaching honestly a bit stressed every day
+]]})
+
+local Tab = Window:CreateTab("settings", "cog")
 
 local Button = Tab:CreateButton({
 	Name = "reset paint variable (ONLY FOR PAINT, NO OTHER TOOL!!)",
@@ -288,80 +444,12 @@ local Button = Tab:CreateButton({
 	end,
 })
 
+
 local Players = game:GetService("Players")
 
-local function hasEnlighten(plr)
-	if plr.Backpack and plr.Backpack:FindFirstChild("The Arkenstone") then
-		return true
-	end
-	if plr.Character and plr.Character:FindFirstChild("The Arkenstone") then
-		return true
-	end
-	return false
-end
-
-local function createHighlight(char)
-	local h = Instance.new("Highlight")
-	h.Name = "EnliHighlight"
-	h.FillColor = Color3.fromRGB(150, 200, 255)
-	h.OutlineColor = Color3.fromRGB(150, 200, 255)
-	h.FillTransparency = 0.8
-	h.OutlineTransparency = 0
-	h.Parent = char
-	return h
-end
-local function checkEnli(plr)
-	task.spawn(function()
-		while task.wait(0.5) do
-			local char = plr.Character
-			if not char then continue end
-
-			local hasEnli = hasEnlighten(plr)
-			local wasInvisible = false
---[[
-			for _, v in char:GetChildren() do
-				if v:IsA("BasePart") and v.Transparency ~= 0 and v.Name ~= "HumanoidRootPart" then
-					v.Transparency = 0
-					wasInvisible = true
-				end
-			end
-]]
-			local highlight = char:FindFirstChild("EnliHighlight")
-
-			--	if wasInvisible then
-			if not highlight then
-				highlight = createHighlight(char)
-			end
-
-			if hasEnli then
-				highlight.FillColor = Color3.fromRGB(170, 0, 255)
-				highlight.OutlineColor = Color3.fromRGB(170, 0, 255)
-			else
-				highlight.FillColor = Color3.fromRGB(255, 0, 0)
-				highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
-			end
-			--else
-			if highlight then
-				highlight:Destroy()
-			end
-			--end
-		end
-	end)
-
-	plr.CharacterAdded:Connect(function(char)
-		local old = char:FindFirstChild("EnliHighlight")
-		if old then
-			old:Destroy()
-		end
-	end)
-end
 
 
-for _, plr in ipairs(Players:GetPlayers()) do
-	checkEnli(plr)
-end
 
-Players.PlayerAdded:Connect(checkEnli)
 local rayParams = RaycastParams.new()
 rayParams.FilterType = Enum.RaycastFilterType.Exclude
 rayParams.FilterDescendantsInstances = { plr.Character }
@@ -428,11 +516,11 @@ end
 local function sprayNearbyBricks(hitPos, hitNormal, col, currentText)
 	local params = OverlapParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = { workspace.Bricks }
+	params.FilterDescendantsInstances = { workspace.Terrain }
 
 	local parts = workspace:GetPartBoundsInBox(
 		CFrame.new(hitPos),
-		Vector3.new(5, 5, 5),
+		Vector3.new(1, 1, 1),
 		params
 	)
 
@@ -612,7 +700,7 @@ RunService.RenderStepped:Connect(function()
 							normalToFace(nearest.Position),
 							vector.create(nearest.Position.X, nearest.Position.Y, nearest.Position.Z),
 							"both \240\159\164\157",
-							Color3.new(1,1,1),
+							col,
 							"anchor",
 							""
 						)
