@@ -1,7 +1,7 @@
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 local VE = loadstring(game:HttpGet("https://pastebin.com/raw/90Ah2xj8"))()
 task.wait(0.5) -- make sure script received version
-local currentVersion = "1.0.1"
+local currentVersion = "1.0.2"
 if VE ~= currentVersion then
 	Rayfield:Notify({
 		Title = "OUT OF DATE!!",
@@ -231,6 +231,17 @@ Tab:CreateToggle({
 		print("2: ".. tostring(v))
 	end
 })
+local DeleteClickAura = false
+Tab:CreateToggle({
+	Name = "Delete aura (CLICK AT POSITION)",
+	CurrentValue = false,
+	Flag = "dca",
+	Callback = function(v)
+		DeleteClickAura = v
+		print(ka)
+		print("2: ".. tostring(v))
+	end
+})
 
 
 local backpack = plr:WaitForChild("Backpack")
@@ -345,7 +356,7 @@ local function invisibleAlert(target)
 		end
 		local torso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
 		if torso and torso.Transparency == 1 then
-			
+
 			gui()
 		else
 			local ui = character:FindFirstChild("invis")
@@ -353,7 +364,7 @@ local function invisibleAlert(target)
 				ui:Destroy()
 			end
 		end
-		
+
 	end
 end
 
@@ -390,7 +401,7 @@ task.spawn(function()
 							v:Destroy()
 							table.remove(highlights, table.find(highlights, v))
 						end
-						
+
 					end
 					if showInvis then
 						invisibleAlert(Player)
@@ -414,6 +425,12 @@ local Paragraph = Tab:CreateParagraph({Title = "v1.0.1 (15/01/2026)", Content = 
 - Tips tab
 - Added a version checker
 - got complaints of "I DONT HAVE SETTINGS!!" so i moved some setting buttons to main (brax ur either blind or im just better)
+]]})
+local Paragraph = Tab:CreateParagraph({Title = "v1.0.2 (18/01/2026)", Content = [[
+- added delete aura
+- to use delete aura, equip delete tool whereu  wanna use it, run off, use freecam and go back to where
+you last equipped it, and enable delete aura and click at the position, this will create a 20x20x20 box
+that delets anything inside of it
 ]]})
 
 local Tab = Window:CreateTab("creds", "hammer")
@@ -598,29 +615,76 @@ task.spawn(function()
 	end
 end)
 ]]
+local deleteAuraBox
+local function runDeleteClickAura(hitPos)
+	if not DeleteClickAura or not hitPos then
+		if deleteAuraBox then
+			deleteAuraBox:Destroy()
+			deleteAuraBox = nil
+		end
+		return
+	end
+
+	if not deleteAuraBox then
+		deleteAuraBox = Instance.new("Part")
+		deleteAuraBox.Size = Vector3.new(20, 20, 20)
+		deleteAuraBox.Anchored = true
+		deleteAuraBox.CanCollide = false
+		deleteAuraBox.Transparency = 0.65
+		deleteAuraBox.Color = Color3.fromRGB(255, 0, 0)
+		deleteAuraBox.Material = Enum.Material.Neon
+		deleteAuraBox.Name = "DeleteAura"
+		deleteAuraBox.Parent = workspace
+	end
+
+	deleteAuraBox.CFrame = CFrame.new(hitPos)
+
+	local overlapParams = OverlapParams.new()
+	overlapParams.FilterType = Enum.RaycastFilterType.Exclude
+	overlapParams.FilterDescendantsInstances = {deleteAuraBox}
+
+	local parts = workspace:GetPartBoundsInBox(deleteAuraBox.CFrame, deleteAuraBox.Size, overlapParams)
+
+	for _, part in ipairs(parts) do
+		if part:IsA("BasePart") and part:IsDescendantOf(workspace.Bricks) then
+			deleteEvent:FireServer(part, part.Position)
+		end
+	end
+end
+
+-- SPRAYPAINT CLICK
 mouse.Button1Down:Connect(function()
-	if not spraypaint then return end
+	if spraypaint then
+		local origin = cam.CFrame.Position
+		local hitPos = mouse.Hit.Position
+		local direction = (hitPos - origin) * 500
 
-	local target = mouse.Target
-	if not target then return end
+		local result = workspace:Raycast(origin, direction, rayParams)
+		if not result then return end
 
-	refreshTools()
-	if not event then warn("No paint.. still attempting") end
+		sprayNearbyBricks(
+			result.Position,
+			result.Normal,
+			Color3.fromHSV(h, 1, 1),
+			currentText
+		)
+	end
+end)
+
+local DCAPos
+mouse.Button1Down:Connect(function()
+	if not DeleteClickAura then return end
 
 	local origin = cam.CFrame.Position
 	local hitPos = mouse.Hit.Position
-	local direction = (hitPos - origin) * 500
+	local direction = (hitPos - origin) * 1000
 
 	local result = workspace:Raycast(origin, direction, rayParams)
 	if not result then return end
 
-	sprayNearbyBricks(
-		result.Position,
-		result.Normal,
-		Color3.fromHSV(h, 1, 1),
-		currentText
-	)
+	DCAPos = result.Position
 end)
+
 
 local function checkForTools()
 	shovel = LocalPlayer.Character:FindFirstChild("Shovel")
@@ -672,12 +736,12 @@ RunService.RenderStepped:Connect(function()
 		refreshTools()
 	end
 
-
 	h = h + 0.005
 	if h > 1 then h = 0 end
 	local col = Color3.fromHSV(h, 1, 1)
 	local origin = cam.CFrame.Position
 	local direction = Vector3.new()
+	runDeleteClickAura(DCAPos)
 	if detailedPath then
 		local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
 		if not hrp then return end
