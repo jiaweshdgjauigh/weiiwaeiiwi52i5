@@ -232,7 +232,7 @@ local function ConnectListener(player)
 					local targetChar = target.Character
 					if not targetChar then return end
 					worm = true 
-					wormFunction(targetChar)
+					wormFunction(target.Name)
 				end
 
 			end
