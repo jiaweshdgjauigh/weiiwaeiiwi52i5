@@ -164,6 +164,8 @@ local function ConnectListener(player)
 						local newCFrame = char.HumanoidRootPart.CFrame + rightVector * (5 * index)
 						chatMessage("Aligned 5 studs * index to the right.")
 					end
+				elseif cmd == "version" then
+					chatMessage("Version 1.0.2")
 				end
 
 			end
