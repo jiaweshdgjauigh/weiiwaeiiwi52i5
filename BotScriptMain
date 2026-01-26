@@ -1,1 +1,168 @@
 
+local owner = getgenv().Owner or "XxHunterStormBytexX4"
+local bots = getgenv().Bots or {"Bot1", "Bot2", "XxHunterStormBytexX4"}
+local prefix = getgenv().Prefix or "!"
+local render = getgenv().render or true
+local plr = game.Players.LocalPlayer
+local char = plr.Character or plr.CharacterAdded:Wait()
+-- SERVICES --
+local Bricks = workspace:FindFirstChild("Bricks")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextChatService = game:GetService("TextChatService")
+local Debris = game:GetService("Debris")
+local TweenService = game:GetService("TweenService")
+local RBXGeneral = TextChatService.TextChannels.RBXGeneral
+local ConnectedAdmins = {}
+if owner then
+	table.insert(ConnectedAdmins, Players:FindFirstChild(tostring(owner)))
+end
+if not render then
+	RunService:Set3dRenderingEnabled(false)
+else
+	RunService:Set3dRenderingEnabled(true)
+end
+
+local index = table.find(bots, plr.Name)
+if not index then
+	warn("No index!")
+else
+	print("Found index:".. index)
+end
+
+local function chatMessage(msg :string)
+	RBXGeneral:SendAsync(tostring(msg))
+end
+task.spawn(function()
+	while task.wait(1) do
+		local args = {
+			"Focused"
+		}
+		game:GetService("ReplicatedStorage"):WaitForChild("System"):FireServer(unpack(args))
+
+	end
+end)
+local function FindTool(toolName)
+	local tool = plr.Backpack:FindFirstChild(toolName)
+	if not tool then
+		tool = char:FindFirstChild(toolName)
+	end
+	if tool then
+		return tool
+	end
+end
+
+local function ConnectListener(player)
+	player.Chatted:Connect(function(msg :string)
+		if table.find(ConnectedAdmins, player) then
+			if msg:sub(1, #prefix) == prefix then
+				local content = msg:sub(#prefix + 1)
+				local space = content:find(" ")
+				local cmd = space and content:sub(1, space - 1) or content
+				local args = space and content:sub(space + 1) or ""
+
+				if cmd == "status" then
+					chatMessage("Bot ".. index.. " is active!")
+				elseif cmd == "fix" then
+					if char then
+						local humanoid = char:FindFirstChild("Humanoid")
+						if humanoid then
+							humanoid.Health = 0
+						end
+					end
+				elseif cmd == "index" then
+					chatMessage(index)
+				elseif cmd == "say" then
+					if args ~= "" then
+						chatMessage(args)
+					end
+				elseif cmd == "rendering" then
+					if args == "true" then
+						RunService:Set3dRenderingEnabled(true)
+					elseif args == "false" then
+						RunService:Set3dRenderingEnabled(false)
+					end
+
+				elseif cmd == "dance" then
+					chatMessage("/e dance")
+				elseif cmd == "dance2" then
+					chatMessage("/e dance2")
+				elseif cmd == "dance3" then
+					chatMessage("/e dance3")
+				elseif cmd == "dance4" then
+					chatMessage("/e dance4")
+				elseif cmd == "vDonate" then
+					local space2 = args:find(" ")
+					if not space2 then return end
+
+					local targetName = args:sub(1, space2 - 1)
+					local amountStr = args:sub(space2 + 1)
+					local amount = tonumber(amountStr)
+					if not amount or amount <= 0 then return end
+					local target = game.Players:FindFirstChild(targetName) or game.Players.LocalPlayer.Name
+					if target then
+						chatMessage(";donate ".. targetName.." "..amount)
+						print("Donated")
+					end
+					--[[
+				elseif cmd == "settime" then
+					local space2 = args:find(" ")
+					if not space2 then return end
+
+					local targetName = args:sub(1, space2 - 1)
+					local amountStr = args:sub(space2 + 1)
+					local amount = tonumber(amountStr)
+					if not amount or amount <= 0 then return end
+					local target = game.Players:FindFirstChild(targetName) or game.Players.LocalPlayer.Name
+					if target then
+						chatMessage(";time ".. targetName.. " ".. amount)
+						print("Donated")
+					end
+]]
+				elseif cmd == "Delete" then
+					if args == "" then return end
+
+					local target = game.Players:FindFirstChild(args)
+					if not target then return end
+
+					local tool = FindTool("Delete")
+					if tool then
+						tool.Parent = plr.Character
+						local remote = tool.Script.Event
+						local PlayerFolder = Bricks:FindFirstChild(target.Name)
+						if PlayerFolder then
+							local root :Part = char:FindFirstChild("HumanoidRootPart")
+							for _, part in pairs(PlayerFolder:GetChildren()) do
+								if part:IsA("BasePart") then
+									char:PivotTo(part.CFrame)
+									remote:FireServer(part, part.Position)
+								else
+									warn("Not part")
+								end
+								task.wait(.075)
+							end
+						else
+							warn("No folder")
+						end
+					else
+						warn("NO tool")
+					end
+				elseif cmd == "setPrefix" then
+					if args == "" then return end
+					prefix = args
+
+					
+				end
+
+			end
+		end
+	end)
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+	ConnectListener(player)
+end
+game.Players.PlayerAdded:Connect(function(Newcomer)
+	ConnectListener(Newcomer)
+end)
