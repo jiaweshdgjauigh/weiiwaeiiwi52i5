@@ -56,51 +56,33 @@ local function FindTool(toolName)
 		return tool
 	end
 end
-
-local function wormFunction(T)
-	local target : Player = game.Players:FindFirstChild(T)
-	if not target then return end
-
-	for i, bot in ipairs(bots) do
-			local followTarget
-			if i == 1 then
-				followTarget = target
-			else
-				local previousBot = bots[i - 1]
-				if previousBot:IsA("Model") then
-					followTarget = previousBot
-				end
-			end
-			local char = followTarget.Character
-			if followTarget:IsA("Player") and char then
-				local connection
-				connection = followTarget.CharacterAdded:Connect(function()
-					worm = false
-					connection:Disconnect()
-				end)
-			end
-
-			local humanoid = bot:FindFirstChildOfClass("Humanoid")
-			if not humanoid then return end
-
-			while worm do
-				task.wait(0.1)
-
-				local hrp
-				if followTarget:IsA("Player") then
-					if followTarget.Character then
-						hrp = followTarget.Character:FindFirstChild("HumanoidRootPart")
-					end
-				else
-					hrp = followTarget:FindFirstChild("PrimaryPart") or followTarget:FindFirstChild("HumanoidRootPart")
-				end
-
-				if hrp then
-					humanoid:MoveTo(hrp.Position)
-				end
-			end
+local function wormFunction(targetPlayer)
+	local followTarget
+	if index == 1 then
+		followTarget = targetPlayer
+	else
+		followTarget = game.Players:FindFirstChild(bots[index - 1])
+	end
+	if not followTarget then return end
+	local char = game.Players.LocalPlayer.Character
+	if not char then return end
+	local humanoid = char:FindFirstChildOfClass("Humanoid")
+	if not humanoid then return end
+	local worm = true
+	local connection
+	connection = followTarget.CharacterAdded:Connect(function()
+		worm = false
+		connection:Disconnect()
+	end)
+	while worm do
+		task.wait(0.1)
+		local targetChar = followTarget.Character
+		if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
+			humanoid:MoveTo(targetChar.HumanoidRootPart.Position)
+		end
 	end
 end
+
 local function ConnectListener(player)
 	player.Chatted:Connect(function(msg :string)
 		if table.find(ConnectedAdmins, player) then
@@ -232,7 +214,7 @@ local function ConnectListener(player)
 					local targetChar = target.Character
 					if not targetChar then return end
 					worm = true 
-					wormFunction(target.Name)
+					wormFunction(target)
 				end
 
 			end
