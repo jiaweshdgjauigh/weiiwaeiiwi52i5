@@ -4,7 +4,7 @@ local prefix = getgenv().Prefix or "!"
 local render = getgenv().render or true
 local plr = game.Players.LocalPlayer
 local char = plr.Character or plr.CharacterAdded:Wait()
-
+local scriptActive = true
 -- bools
 local worm = false
 local following = false
@@ -85,6 +85,7 @@ end
 
 local function ConnectListener(player)
 	player.Chatted:Connect(function(msg :string)
+		if not scriptActive then return end
 		if table.find(ConnectedAdmins, player) then
 			if msg:sub(1, #prefix) == prefix then
 				local content = msg:sub(#prefix + 1)
@@ -215,6 +216,9 @@ local function ConnectListener(player)
 					if not targetChar then return end
 					worm = true 
 					wormFunction(target)
+				elseif cmd == "disconnect" then
+					scriptActive = false
+					worm = false
 				end
 
 			end
