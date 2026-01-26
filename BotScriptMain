@@ -24,6 +24,7 @@ local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
 local RBXGeneral = TextChatService.TextChannels.RBXGeneral
 local ConnectedAdmins = {}
+RunService:Set3dRenderingEnabled(render)
 
 if owner then
 	table.insert(ConnectedAdmins, Players:FindFirstChild(tostring(owner)))
@@ -233,8 +234,13 @@ local function say(msg)
 end
 
 local function setRendering(arg)
-	if index ~= channel then return end
-chatMessage("Disabled, will work in real games")
+	if arg == "true" then
+		RunService:Set3dRenderingEnabled(true)
+		chatMessage("3D Rendering True")
+	elseif arg == "false" then
+		RunService:Set3dRenderingEnabled(false)
+		chatMessage("3D Rendering False")
+	end
 end
 
 local function dance(cmd)
