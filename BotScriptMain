@@ -1,7 +1,7 @@
-local owner = "Player1"
-local bots = {"Player2", "Player3", "Player4", "Player5", "Player6"}
-local prefix = "!"
-local render =true
+local owner = getgenv().Owner or "XxHunterStormBytexX4"
+local bots = getgenv().Bots or {"Bot1", "Bot2", "XxHunterStormBytexX4"}
+local prefix = getgenv().Prefix or "!"
+local render = getgenv().render or true
 local plr = game.Players.LocalPlayer
 local nbbot = #bots
 local char = plr.Character or plr.CharacterAdded:Wait()
