@@ -4,6 +4,10 @@ local prefix = getgenv().Prefix or "!"
 local render = getgenv().render or true
 local plr = game.Players.LocalPlayer
 local char = plr.Character or plr.CharacterAdded:Wait()
+
+-- bools
+local worm = false
+local following = false
 -- SERVICES --
 local Bricks = workspace:FindFirstChild("Bricks")
 local RunService = game:GetService("RunService")
@@ -53,6 +57,50 @@ local function FindTool(toolName)
 	end
 end
 
+local function wormFunction(T)
+	local target : Player = game.Players:FindFirstChild(T)
+	if not target then return end
+
+	for i, bot in ipairs(bots) do
+			local followTarget
+			if i == 1 then
+				followTarget = target
+			else
+				local previousBot = bots[i - 1]
+				if previousBot:IsA("Model") then
+					followTarget = previousBot
+				end
+			end
+			local char = followTarget.Character
+			if followTarget:IsA("Player") and char then
+				local connection
+				connection = followTarget.CharacterAdded:Connect(function()
+					worm = false
+					connection:Disconnect()
+				end)
+			end
+
+			local humanoid = bot:FindFirstChildOfClass("Humanoid")
+			if not humanoid then return end
+
+			while worm do
+				task.wait(0.1)
+
+				local hrp
+				if followTarget:IsA("Player") then
+					if followTarget.Character then
+						hrp = followTarget.Character:FindFirstChild("HumanoidRootPart")
+					end
+				else
+					hrp = followTarget:FindFirstChild("PrimaryPart") or followTarget:FindFirstChild("HumanoidRootPart")
+				end
+
+				if hrp then
+					humanoid:MoveTo(hrp.Position)
+				end
+			end
+	end
+end
 local function ConnectListener(player)
 	player.Chatted:Connect(function(msg :string)
 		if table.find(ConnectedAdmins, player) then
@@ -160,12 +208,31 @@ local function ConnectListener(player)
 					if not target then return end
 					local targetChar = target.Character
 					if targetChar then
-						local rightVector = char.HumanoidRootPart.CFrame.RightVector
-						local newCFrame = char.HumanoidRootPart.CFrame + rightVector * (5 * index)
+						local rightVector = targetChar.HumanoidRootPart.CFrame.RightVector
+						local newCFrame = targetChar.HumanoidRootPart.CFrame + rightVector * (5 * index)
+						char:PivotTo(newCFrame)
 						chatMessage("Aligned 5 studs * index to the right.")
 					end
 				elseif cmd == "version" then
 					chatMessage("Version 1.0.2")
+				elseif cmd == "bring" then
+					local targetChar = player.Character
+					if targetChar then
+						local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
+						local root = char:FindFirstChild("HumanoidRootPart")
+						if targetRoot and root then
+							char:PivotTo(targetRoot.CFrame)
+						end
+					end
+				elseif cmd == "worm" then
+					if not args then return end
+					local target = game.Players:FindFirstChild(args)
+					if not target then return end
+					
+					local targetChar = target.Character
+					if not targetChar then return end
+					worm = true 
+					wormFunction(targetChar)
 				end
 
 			end
