@@ -1,4 +1,3 @@
-
 local owner = getgenv().Owner or "XxHunterStormBytexX4"
 local bots = getgenv().Bots or {"Bot1", "Bot2", "XxHunterStormBytexX4"}
 local prefix = getgenv().Prefix or "!"
@@ -43,6 +42,7 @@ task.spawn(function()
 
 	end
 end)
+
 local function FindTool(toolName)
 	local tool = plr.Backpack:FindFirstChild(toolName)
 	if not tool then
@@ -80,8 +80,10 @@ local function ConnectListener(player)
 				elseif cmd == "rendering" then
 					if args == "true" then
 						RunService:Set3dRenderingEnabled(true)
+						chatMessage("3D Rendering True")
 					elseif args == "false" then
 						RunService:Set3dRenderingEnabled(false)
+						chatMessage("3D Rendering False")
 					end
 
 				elseif cmd == "dance" then
@@ -152,7 +154,16 @@ local function ConnectListener(player)
 					if args == "" then return end
 					prefix = args
 
-					
+				elseif cmd == "align" then
+					if args == "" then return end
+					local target = game.Players:FindFirstChild(args)
+					if not target then return end
+					local targetChar = target.Character
+					if targetChar then
+						local rightVector = char.HumanoidRootPart.CFrame.RightVector
+						local newCFrame = char.HumanoidRootPart.CFrame + rightVector * (5 * index)
+						chatMessage("Aligned 5 studs * index to the right.")
+					end
 				end
 
 			end
