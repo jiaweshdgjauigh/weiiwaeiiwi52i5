@@ -1,5 +1,5 @@
 local owner = getgenv().Owner or "XxHunterStormBytexX4"
-local bots = getgenv().Bots or {"Bot1", "Bot2", "XxHunterStormBytexX4"}
+local bots = getgenv().Bots or {"CookieFrost84", "Qu33nPuls3Hunt3r2024", "XXMYSTIC_ZoomxX20084", "XxThunderS0nicxX50", "HeroFusionBlock97"} --replace with the usernames of the bots in the game
 local prefix = getgenv().Prefix or "!"
 local render = getgenv().render or true
 local plr = game.Players.LocalPlayer
