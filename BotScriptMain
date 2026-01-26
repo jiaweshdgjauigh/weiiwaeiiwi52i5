@@ -1,14 +1,20 @@
-local owner = getgenv().Owner or "XxHunterStormBytexX4"
-local bots = getgenv().Bots or {"Bot1", "Bot2", "XxHunterStormBytexX4"}
-local prefix = getgenv().Prefix or "!"
-local render = getgenv().render or true
+local owner = "Player1"
+local bots = {"Player2", "Player3", "Player4", "Player5", "Player6"}
+local prefix = "!"
+local render =true
 local plr = game.Players.LocalPlayer
+local nbbot = #bots
 local char = plr.Character or plr.CharacterAdded:Wait()
+plr.CharacterAdded:Connect(function(c) char = c end)
 local scriptActive = true
--- bools
+local offset = math.random(0, 360)
 local worm = false
+local orbitbool = false
 local following = false
--- SERVICES --
+local orbitConnection
+local orbitbool = false
+
+local channel = 1
 local Bricks = workspace:FindFirstChild("Bricks")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -18,57 +24,184 @@ local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
 local RBXGeneral = TextChatService.TextChannels.RBXGeneral
 local ConnectedAdmins = {}
+
 if owner then
 	table.insert(ConnectedAdmins, Players:FindFirstChild(tostring(owner)))
 end
-if not render then
-	RunService:Set3dRenderingEnabled(false)
-else
-	RunService:Set3dRenderingEnabled(true)
-end
 
+if game.Players.LocalPlayer.Name == owner then return end
+
+local function findPlayerByName(partialName)
+	if partialName:lower() == "me" then
+		return game.Players:FindFirstChild(owner)
+	end
+
+	if partialName:lower() == "random" then
+		local players = game.Players:GetPlayers()
+		if #players > 0 then
+			return players[math.random(1, #players)]
+		end
+	end
+
+	local bestMatch = nil
+	local bestMatchScore = 0
+
+	for _, plr in pairs(game.Players:GetPlayers()) do
+		local nameMatch = plr.Name:lower():find(partialName:lower())
+		local displayNameMatch = plr.DisplayName:lower():find(partialName:lower())
+
+		if nameMatch or displayNameMatch then
+			local score = (nameMatch and #plr.Name or 0) + (displayNameMatch and #plr.DisplayName or 0)
+			if score > bestMatchScore then
+				bestMatchScore = score
+				bestMatch = plr
+			end
+		end
+	end
+
+	return bestMatch
+end
 local index = table.find(bots, plr.Name)
 if not index then
 	warn("No index!")
 else
-	print("Found index:".. index)
+	print("Found index:"..index)
 end
 
-local function chatMessage(msg :string)
+local indexcircle = index and (360 / nbbot * index) or 0
+
+local function stop()
+	worm = false
+	following = false
+end
+local function fixHumanoid()
+	local humanoid = char:FindFirstChild("Humanoid")
+	if humanoid then humanoid.Health = 0 end
+end
+local function fix()
+	stop()
+	fixHumanoid()
+	workspace.Gravity = 196.2
+end
+
+local function removeVelocity()
+	for _, v in pairs(plr.Character:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.Velocity = Vector3.new()
+			v.RotVelocity = Vector3.new()
+		elseif v:IsA("BodyVelocity") then
+			v.Velocity = Vector3.new()
+		elseif v:IsA("BodyAngularVelocity") then
+			v.AngularVelocity = Vector3.new()
+		elseif v:IsA("BodyPosition") then
+			v.Position = v.Position
+		elseif v:IsA("BodyGyro") then
+			v.CFrame = v.CFrame
+		end
+	end
+end
+
+local function tpcircle(distance)
+	if distance == 0 then distance = 0.0001 end
+	local targetPlayer = Players:FindFirstChild(owner)
+	if not targetPlayer or not targetPlayer.Character then return end
+	local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+	if not targetHRP then return end
+	local playerHRP = char:FindFirstChild("HumanoidRootPart")
+	if not playerHRP then return end
+	removeVelocity()
+	local angle = math.rad(indexcircle)
+	local newPos = targetHRP.Position + Vector3.new(distance * math.cos(angle), 0, distance * math.sin(angle))
+	playerHRP.CFrame = CFrame.new(newPos, targetHRP.Position)
+end
+
+local function chatMessage(msg)
 	RBXGeneral:SendAsync(tostring(msg))
 end
+
 task.spawn(function()
 	while task.wait(1) do
-		local args = {
-			"Focused"
-		}
-		game:GetService("ReplicatedStorage"):WaitForChild("System"):FireServer(unpack(args))
-
+		local args = {"Focused"}
+		ReplicatedStorage:WaitForChild("System"):FireServer(unpack(args))
 	end
 end)
 
 local function FindTool(toolName)
-	local tool = plr.Backpack:FindFirstChild(toolName)
-	if not tool then
-		tool = char:FindFirstChild(toolName)
-	end
-	if tool then
-		return tool
+	local tool = plr.Backpack:FindFirstChild(toolName) or char:FindFirstChild(toolName)
+	return tool
+end
+
+local globalRotation = 0
+
+local function getIndex()
+	for i, name in ipairs(bots) do
+		if name == plr.Name then
+			return i
+		end
 	end
 end
-local function wormFunction(targetPlayer)
-	local followTarget
-	if index == 1 then
-		followTarget = targetPlayer
-	else
-		followTarget = game.Players:FindFirstChild(bots[index - 1])
+
+local function orbitByIndex(targetPlayer, speed, r)
+	if orbitConnection then
+		orbitConnection:Disconnect()
+		orbitConnection = nil
 	end
-	if not followTarget then return end
-	local char = game.Players.LocalPlayer.Character
+
+	speed = speed or 3
+	r = r or 8
+	if r == 0 then r = 0.0001 end
+
+	local index = getIndex()
+	if not index then return end
+
+	local count = #bots
+	if count == 0 then return end
+
+	local char = plr.Character
 	if not char then return end
+
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	local tChar = targetPlayer.Character
+	if not tChar then return end
+
+	local tHrp = tChar:FindFirstChild("HumanoidRootPart")
+	if not tHrp then return end
+
+	orbitbool = true
+
+	orbitConnection = RunService.Heartbeat:Connect(function(dt)
+		if not orbitbool then
+			orbitConnection:Disconnect()
+			orbitConnection = nil
+			return
+		end
+
+		local th = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+		if not th then return end
+
+		removeVelocity()
+
+		globalRotation = (globalRotation + speed) % 360
+
+		local indexOffset = ((index - 1) / count) * 360
+		local angle = globalRotation + indexOffset
+
+		local pos =
+			CFrame.new(th.Position)
+			* CFrame.Angles(0, math.rad(angle), 0)
+			* CFrame.new(r, 0, 0)
+
+		hrp.CFrame = CFrame.new(pos.Position, th.Position)
+	end)
+end
+
+local function wormFunction(targetPlayer)
+	local followTarget = index == 1 and targetPlayer or Players:FindFirstChild(bots[index - 1])
+	if not followTarget then return end
 	local humanoid = char:FindFirstChildOfClass("Humanoid")
 	if not humanoid then return end
-	local worm = true
 	local connection
 	connection = followTarget.CharacterAdded:Connect(function()
 		worm = false
@@ -78,157 +211,171 @@ local function wormFunction(targetPlayer)
 		task.wait(0.1)
 		local targetChar = followTarget.Character
 		if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
-			humanoid:MoveTo(targetChar.HumanoidRootPart.Position)
+			local distance = (targetChar.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
+			if distance > 4 then
+				humanoid:MoveTo(targetChar.HumanoidRootPart.Position)
+			end
 		end
 	end
 end
 
-local function ConnectListener(player)
-	player.Chatted:Connect(function(msg :string)
-		if not scriptActive then return end
-		if table.find(ConnectedAdmins, player) then
-			if msg:sub(1, #prefix) == prefix then
-				local content = msg:sub(#prefix + 1)
-				local space = content:find(" ")
-				local cmd = space and content:sub(1, space - 1) or content
-				local args = space and content:sub(space + 1) or ""
+-- COMMAND FUNCTIONS
+local function status()
+	chatMessage("Bot "..index.." is active!")
+end
 
-				if cmd == "status" then
-					chatMessage("Bot ".. index.. " is active!")
-				elseif cmd == "fix" then
-					if char then
-						local humanoid = char:FindFirstChild("Humanoid")
-						if humanoid then
-							humanoid.Health = 0
-						end
-					end
-				elseif cmd == "index" then
-					chatMessage(index)
-				elseif cmd == "say" then
-					if args ~= "" then
-						chatMessage(args)
-					end
-				elseif cmd == "rendering" then
-					if args == "true" then
-						RunService:Set3dRenderingEnabled(true)
-						chatMessage("3D Rendering True")
-					elseif args == "false" then
-						RunService:Set3dRenderingEnabled(false)
-						chatMessage("3D Rendering False")
-					end
+local function sendIndex()
+	chatMessage(index)
+end
 
-				elseif cmd == "dance" then
-					chatMessage("/e dance")
-				elseif cmd == "dance2" then
-					chatMessage("/e dance2")
-				elseif cmd == "dance3" then
-					chatMessage("/e dance3")
-				elseif cmd == "dance4" then
-					chatMessage("/e dance4")
-				elseif cmd == "vDonate" then
-					local space2 = args:find(" ")
-					if not space2 then return end
+local function say(msg)
+	if msg ~= "" then chatMessage(msg) end
+end
 
-					local targetName = args:sub(1, space2 - 1)
-					local amountStr = args:sub(space2 + 1)
-					local amount = tonumber(amountStr)
-					if not amount or amount <= 0 then return end
-					local target = game.Players:FindFirstChild(targetName) or game.Players.LocalPlayer.Name
-					if target then
-						chatMessage(";donate ".. targetName.." "..amount)
-						print("Donated")
-					end
-					--[[
-				elseif cmd == "settime" then
-					local space2 = args:find(" ")
-					if not space2 then return end
+local function setRendering(arg)
+	if index ~= channel then return end
+chatMessage("Disabled, will work in real games")
+end
 
-					local targetName = args:sub(1, space2 - 1)
-					local amountStr = args:sub(space2 + 1)
-					local amount = tonumber(amountStr)
-					if not amount or amount <= 0 then return end
-					local target = game.Players:FindFirstChild(targetName) or game.Players.LocalPlayer.Name
-					if target then
-						chatMessage(";time ".. targetName.. " ".. amount)
-						print("Donated")
-					end
-]]
-				elseif cmd == "Delete" then
-					if args == "" then return end
+local function dance(cmd)
+	chatMessage("/e "..cmd)
+end
 
-					local target = game.Players:FindFirstChild(args)
-					if not target then return end
+local function vDonate(args)
+	local space2 = args:find(" ")
+	if not space2 then return end
+	local targetName = args:sub(1, space2 - 1)
+	local amount = tonumber(args:sub(space2 + 1))
+	if not amount or amount <= 0 then return end
+	if Players:FindFirstChild(targetName) then
+		chatMessage(";donate "..targetName.." "..amount)
+	end
+end
 
-					local tool = FindTool("Delete")
-					if tool then
-						tool.Parent = plr.Character
-						local remote = tool.Script.Event
-						local PlayerFolder = Bricks:FindFirstChild(target.Name)
-						if PlayerFolder then
-							local root :Part = char:FindFirstChild("HumanoidRootPart")
-							for _, part in pairs(PlayerFolder:GetChildren()) do
-								if part:IsA("BasePart") then
-									char:PivotTo(part.CFrame)
-									remote:FireServer(part, part.Position)
-								else
-									warn("Not part")
-								end
-								task.wait(.075)
-							end
-						else
-							warn("No folder")
-						end
-					else
-						warn("NO tool")
-					end
-				elseif cmd == "setPrefix" then
-					if args == "" then return end
-					prefix = args
-
-				elseif cmd == "align" then
-					if args == "" then return end
-					local target = game.Players:FindFirstChild(args)
-					if not target then return end
-					local targetChar = target.Character
-					if targetChar then
-						local rightVector = targetChar.HumanoidRootPart.CFrame.RightVector
-						local newCFrame = targetChar.HumanoidRootPart.CFrame + rightVector * (5 * index)
-						char:PivotTo(newCFrame)
-						chatMessage("Aligned 5 studs * index to the right.")
-					end
-				elseif cmd == "version" then
-					chatMessage("Version 1.0.2")
-				elseif cmd == "bring" then
-					local targetChar = player.Character
-					if targetChar then
-						local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
-						local root = char:FindFirstChild("HumanoidRootPart")
-						if targetRoot and root then
-							char:PivotTo(targetRoot.CFrame)
-						end
-					end
-				elseif cmd == "worm" then
-					if not args then return end
-					local target = game.Players:FindFirstChild(args)
-					if not target then return end
-					
-					local targetChar = target.Character
-					if not targetChar then return end
-					worm = true 
-					wormFunction(target)
-				elseif cmd == "disconnect" then
-					scriptActive = false
-					worm = false
+local function DeletePlayer(targetName)
+	if targetName == "" then return end
+	local target = Players:FindFirstChild(targetName)
+	if not target then return end
+	local tool = FindTool("Delete")
+	if tool then
+		tool.Parent = char
+		local remote = tool.Script.Event
+		local folder = Bricks:FindFirstChild(target.Name)
+		if folder then
+			for _, part in pairs(folder:GetChildren()) do
+				if part:IsA("BasePart") then
+					char:PivotTo(part.CFrame)
+					remote:FireServer(part, part.Position)
+					task.wait(0.075)
 				end
-
 			end
 		end
+	end
+end
+
+local function SetChannel(C)
+	if C ~= "" then return end
+	channel = tonumber(C)
+end
+
+local function setPrefix(newPrefix)
+	if newPrefix ~= "" then
+		prefix = newPrefix
+	end
+end
+
+local function align(targetName)
+	local target = Players:FindFirstChild(targetName)
+	if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+		local rightVector = target.Character.HumanoidRootPart.CFrame.RightVector
+		local newCFrame = target.Character.HumanoidRootPart.CFrame + rightVector * (5 * index)
+		char:PivotTo(newCFrame)
+		if index ~= channel then return end
+		chatMessage("Aligned 5 studs * index to the right.")
+	end
+end
+
+local function version()
+	if index ~= channel then return end
+	chatMessage("Version 1.0.2")
+end
+
+local function bring(player)
+	local targetHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	local rootHRP = char:FindFirstChild("HumanoidRootPart")
+	if targetHRP and rootHRP then
+		char:PivotTo(targetHRP.CFrame)
+	end
+end
+
+local function jump()
+	local humanoid = char:FindFirstChild("Humanoid")
+	if humanoid then humanoid.Jump = true end
+end
+
+local function disconnect()
+	scriptActive = false
+	worm = false
+	chatMessage("Bot ".. index.. " has disconnected from the script")
+end
+
+local function stopWorm()
+	worm = false
+	if index ~= channel then return end
+	chatMessage("Stopped")
+end
+
+local function wormCmd(targetName)
+	local target = Players:FindFirstChild(targetName)
+	if target and target.Character then
+		worm = true
+		wormFunction(target)
+	end
+end
+
+-- CONNECT LISTENER
+local function ConnectListener(player)
+	player.Chatted:Connect(function(msg)
+		if not scriptActive then return end
+		if not table.find(ConnectedAdmins, player) then return end
+		if msg:sub(1, #prefix) ~= prefix then return end
+
+		local content = msg:sub(#prefix + 1)
+		local space = content:find(" ")
+		local cmd = space and content:sub(1, space - 1) or content
+		local args = space and content:sub(space + 1) or ""
+
+		if cmd == "status" then status()
+		elseif cmd == "fix" then fix()
+		elseif cmd == "index" then sendIndex()
+		elseif cmd == "say" then say(args)
+		elseif cmd == "rendering" then setRendering(args)
+		elseif cmd:match("^dance") then dance(cmd)
+		elseif cmd == "vDonate" then vDonate(args)
+		elseif cmd == "Delete" then DeletePlayer(args)
+		elseif cmd == "setPrefix" then setPrefix(args)
+		elseif cmd == "align" then align(args)
+		elseif cmd == "version" then version()
+		elseif cmd == "bring" then bring(player)
+		elseif cmd == "jump" then jump()
+		elseif cmd == "disconnect" then disconnect()
+		elseif cmd == "stop" then stop()
+		elseif cmd == "worm" then wormCmd(args)
+		elseif cmd == "orbit" then
+			local split = args:split(" ")
+			local targetName = split[1]
+			local speed = tonumber(split[2])
+			local r = tonumber(split[3])
+
+			local targetPlayer = Players:FindFirstChild(targetName)
+			if targetPlayer then
+				orbitByIndex(targetPlayer, speed, r)
+			end
+		elseif cmd == "circle" then tpcircle(args) end
 	end)
 end
 
 for _, player in ipairs(Players:GetPlayers()) do
 	ConnectListener(player)
 end
-game.Players.PlayerAdded:Connect(function(Newcomer)
-	ConnectListener(Newcomer)
-end)
+Players.PlayerAdded:Connect(ConnectListener)
