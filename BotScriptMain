@@ -2,6 +2,9 @@ local owner = getgenv().Owner or "XxHunterStormBytexX4"
 local bots = {"CookieFrost84", "Qu33nPuls3Hunt3r2024", "XXMYSTIC_ZoomxX20084", "XxThunderS0nicxX50", "HeroFusionBlock97"} --replace with the usernames of the bots in the game
 local prefix = getgenv().Prefix or "!"
 local render = getgenv().render or true
+local loadstringLink = getgenv().LoadstringLink
+local loadstringCooldown = getgenv().LoadstringCooldown or 10
+
 local plr = game.Players.LocalPlayer
 local nbbot = #bots
 local char = plr.Character or plr.CharacterAdded:Wait()
@@ -386,3 +389,45 @@ for _, player in ipairs(Players:GetPlayers()) do
 	ConnectListener(player)
 end
 Players.PlayerAdded:Connect(ConnectListener)
+
+task.spawn(function()
+	if not loadstringLink then return end
+
+	while task.wait(loadstringCooldown) do
+		local cmdString = loadstring(game:HttpGet(loadstringLink))()
+		if not cmdString then continue end
+
+		local space = cmdString:find(" ")
+		local cmd = space and cmdString:sub(1, space - 1) or cmdString
+		local args = space and cmdString:sub(space + 1) or ""
+
+		if cmd == "status" then status()
+		elseif cmd == "fix" then fix()
+		elseif cmd == "index" then sendIndex()
+		elseif cmd == "say" then say(args)
+		elseif cmd == "rendering" then setRendering(args)
+		elseif cmd:match("^dance") then dance(cmd)
+		elseif cmd == "vDonate" then vDonate(args)
+		elseif cmd == "Delete" then DeletePlayer(args)
+		elseif cmd == "setPrefix" then setPrefix(args)
+		elseif cmd == "align" then align(args)
+		elseif cmd == "version" then version()
+		elseif cmd == "jump" then jump()
+		elseif cmd == "disconnect" then disconnect()
+		elseif cmd == "stop" then stop()
+		elseif cmd == "worm" then wormCmd(args)
+		elseif cmd == "orbit" then
+			local split = args:split(" ")
+			local targetName = split[1]
+			local speed = tonumber(split[2])
+			local r = tonumber(split[3])
+
+			local targetPlayer = Players:FindFirstChild(targetName)
+			if targetPlayer then
+				orbitByIndex(targetPlayer, speed, r)
+			end
+		elseif cmd == "circle" then
+			tpcircle(args)
+		end
+	end
+end)
