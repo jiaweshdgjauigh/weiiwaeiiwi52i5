@@ -43,12 +43,39 @@ local Paragraph = Tab:CreateParagraph({Title = "Commands", Content = [[
 <string> = is a string, for example "Hello, world!" is a string, basically something you say
 <number> = you should know this, for example !speed me 100 and 100 is the number
 <bool> = a true or false value
+<user> = the name of the target
+channel is basically the bot that should talk when only one should speak
+for example, channel is Bot 2, when you do align or version and such, only Bot 2 will speak
+this doesnt apply to stuff like say and such
 
-fix - reset your bots
-status - check if bots are active, if they arent, they wont send a message
-index - see the index value of your bots in order
-disconnect - destroy the script in case you will reload it
-say <string> - make the bots say something, e.g !say Hello, world!
-jump - make the bots jump
-dance <name> - make the bots dance, e.g !dance dance1
+status - check what bots are connected
+fix - reset the bots and fix gravity
+index - get the index of a bot
+say <string> - make the bot say something
+rendering <bool> - save cpu usage when false
+dance <1, 2 or 3> - make the bot dance
+vdonate <number> <user> - have every bot donate to the player
+delete <user> - make the bot delete the builds
+setprefix <string> - literally says it, wouldnt recommend using tho
+align <user> - aligns the bot to the player
+version - channel 
+bring - teleport bots to u (idk if this works)
+jump - make them jump
+disconnect - end the script
+stop - stop everything but dont end the script
+tower <user> - make a tower on the player
+worm <user> - line
+orbit <number (speed)> <number (distance)> - yeah
+circle <number (distance)>- circle around player
+]]})
+
+local Tab = Window:CreateTab("Planned", 4483362458) -- Title, Image
+
+local Paragraph = Tab:CreateParagraph({Title = "Planned Features", Content = [[
+'All' 'Others' 'Me' when using a command that requires a target
+dont have to say the whole username of the target for the script to find them
+more orbit variations
+optimisation
+improve delete
+bang command so u can fuck people
 ]]})
