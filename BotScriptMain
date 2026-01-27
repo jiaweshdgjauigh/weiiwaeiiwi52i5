@@ -12,6 +12,7 @@ plr.CharacterAdded:Connect(function(c) char = c end)
 local scriptActive = true
 local offset = math.random(0, 360)
 local worm = false
+local towerbool = false
 local orbitbool = false
 local following = false
 local orbitConnection
@@ -77,6 +78,7 @@ local indexcircle = index and (360 / nbbot * index) or 0
 
 local function stop()
 	worm = false
+	towerbool = false
 	following = false
 end
 local function fixHumanoid()
@@ -336,6 +338,32 @@ local function stopWorm()
 	chatMessage("Stopped")
 end
 
+local function tower(targetName)
+	local target = Players:FindFirstChild(targetName)
+	if target and target.Character then
+		towerbool = true
+		while towerbool do
+			task.wait()
+			if not towerbool then break end
+			
+			local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+			if targetRoot then
+				local localRoot = char:FindFirstChild("HumanoidRootPart")
+				if localRoot then
+					workspace.Gravity = 0
+					removeVelocity()
+					local rootCFrame = target.Character.HumanoidRootPart.CFrame
+					local newCFrame = rootCFrame + Vector3.new(0, 5 * index, 0)
+
+					char:PivotTo(newCFrame)
+					if index ~= channel then return end
+					chatMessage("9.11")
+				end
+			end
+		end
+	end
+end
+
 local function wormCmd(targetName)
 	local target = Players:FindFirstChild(targetName)
 	if target and target.Character then
@@ -416,6 +444,7 @@ task.spawn(function()
 		elseif cmd == "jump" then jump()
 		elseif cmd == "disconnect" then disconnect()
 		elseif cmd == "stop" then stop()
+		elseif cmd == "tower" then tower(args)
 		elseif cmd == "worm" then wormCmd(args)
 		elseif cmd == "orbit" then
 			local split = args:split(" ")
