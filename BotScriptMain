@@ -356,8 +356,6 @@ local function tower(targetName)
 					local newCFrame = rootCFrame + Vector3.new(0, 5 * index, 0)
 
 					char:PivotTo(newCFrame)
-					if index ~= channel then return end
-					chatMessage("9.11")
 				end
 			end
 		end
@@ -400,6 +398,7 @@ local function ConnectListener(player)
 		elseif cmd == "disconnect" then disconnect()
 		elseif cmd == "stop" then stop()
 		elseif cmd == "worm" then wormCmd(args)
+		elseif cmd == "tower" then tower(args)
 		elseif cmd == "orbit" then
 			local split = args:split(" ")
 			local targetName = split[1]
