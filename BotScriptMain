@@ -1,15 +1,7 @@
-local owner = getgenv().Owner or "XxHunterStormBytexX4"
-local bots = {"gurgleontat67", "flyundertheradar_xx", "JujitsuAss"}
-local prefix = getgenv().Prefix or "!"
-local render = getgenv().render or true
-local loadstringLink = getgenv().LoadstringLink
-local loadstringCooldown = getgenv().LoadstringCooldown or 10
-
-game.Players.LocalPlayer.Idled:Connect(function() -- anti afk
-	game:GetService("VirtualUser"):CaptureController()
-	game:GetService("VirtualUser"):ClickButton2(Vector2.new())
-end)
-
+local owner = getgenv().Owner
+local bots = getgenv().Bots
+local prefix = getgenv().Prefix or "."
+local render = getgenv().render
 local plr = game.Players.LocalPlayer
 local nbbot = #bots
 local char = plr.Character or plr.CharacterAdded:Wait()
@@ -85,6 +77,7 @@ local function stop()
 	worm = false
 	towerbool = false
 	following = false
+	orbitbool = false
 end
 local function fixHumanoid()
 	local humanoid = char:FindFirstChild("Humanoid")
@@ -377,7 +370,8 @@ end
 
 -- CONNECT LISTENER
 local function ConnectListener(player)
-	player.Chatted:Connect(function(msg)
+	player.Chatted:Connect(function(msg :string)
+		msg = string.lower(msg)
 		if not scriptActive then return end
 		if not table.find(ConnectedAdmins, player) then return end
 		if msg:sub(1, #prefix) ~= prefix then return end
@@ -393,17 +387,17 @@ local function ConnectListener(player)
 		elseif cmd == "say" then say(args)
 		elseif cmd == "rendering" then setRendering(args)
 		elseif cmd:match("^dance") then dance(cmd)
-		elseif cmd == "vDonate" then vDonate(args)
-		elseif cmd == "Delete" then DeletePlayer(args)
-		elseif cmd == "setPrefix" then setPrefix(args)
+		elseif cmd == "vdonate" then vDonate(args)
+		elseif cmd == "delete" then DeletePlayer(args)
+		elseif cmd == "setprefix" then setPrefix(args)
 		elseif cmd == "align" then align(args)
 		elseif cmd == "version" then version()
 		elseif cmd == "bring" then bring(player)
 		elseif cmd == "jump" then jump()
 		elseif cmd == "disconnect" then disconnect()
 		elseif cmd == "stop" then stop()
-		elseif cmd == "worm" then wormCmd(args)
 		elseif cmd == "tower" then tower(args)
+		elseif cmd == "worm" then wormCmd(args)
 		elseif cmd == "orbit" then
 			local split = args:split(" ")
 			local targetName = split[1]
@@ -422,46 +416,3 @@ for _, player in ipairs(Players:GetPlayers()) do
 	ConnectListener(player)
 end
 Players.PlayerAdded:Connect(ConnectListener)
-
-task.spawn(function()
-	if not loadstringLink then return end
-
-	while task.wait(loadstringCooldown) do
-		local cmdString = loadstring(game:HttpGet(loadstringLink))()
-		if not cmdString then continue end
-
-		local space = cmdString:find(" ")
-		local cmd = space and cmdString:sub(1, space - 1) or cmdString
-		local args = space and cmdString:sub(space + 1) or ""
-
-		if cmd == "status" then status()
-		elseif cmd == "fix" then fix()
-		elseif cmd == "index" then sendIndex()
-		elseif cmd == "say" then say(args)
-		elseif cmd == "rendering" then setRendering(args)
-		elseif cmd:match("^dance") then dance(cmd)
-		elseif cmd == "vDonate" then vDonate(args)
-		elseif cmd == "Delete" then DeletePlayer(args)
-		elseif cmd == "setPrefix" then setPrefix(args)
-		elseif cmd == "align" then align(args)
-		elseif cmd == "version" then version()
-		elseif cmd == "jump" then jump()
-		elseif cmd == "disconnect" then disconnect()
-		elseif cmd == "stop" then stop()
-		elseif cmd == "tower" then tower(args)
-		elseif cmd == "worm" then wormCmd(args)
-		elseif cmd == "orbit" then
-			local split = args:split(" ")
-			local targetName = split[1]
-			local speed = tonumber(split[2])
-			local r = tonumber(split[3])
-
-			local targetPlayer = Players:FindFirstChild(targetName)
-			if targetPlayer then
-				orbitByIndex(targetPlayer, speed, r)
-			end
-		elseif cmd == "circle" then
-			tpcircle(args)
-		end
-	end
-end)
