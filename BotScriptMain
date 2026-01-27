@@ -5,6 +5,11 @@ local render = getgenv().render or true
 local loadstringLink = getgenv().LoadstringLink
 local loadstringCooldown = getgenv().LoadstringCooldown or 10
 
+game.Players.LocalPlayer.Idled:Connect(function() -- anti afk
+	game:GetService("VirtualUser"):CaptureController()
+	game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+end)
+
 local plr = game.Players.LocalPlayer
 local nbbot = #bots
 local char = plr.Character or plr.CharacterAdded:Wait()
