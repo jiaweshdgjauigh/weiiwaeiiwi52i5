@@ -121,6 +121,7 @@ local function tpcircle(distance)
 end
 
 local function chatMessage(msg)
+	if not msg then warn("Message is nil - line 124. Returning to prevent errors") return end
 	RBXGeneral:SendAsync(tostring(msg))
 end
 
