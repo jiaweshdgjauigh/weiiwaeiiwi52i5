@@ -1,34 +1,50 @@
+-- SET UP
 local owner = getgenv().Owner
 local bots = getgenv().Bots
 local prefix = getgenv().Prefix or "."
 local render = getgenv().render
-local plr = game.Players.LocalPlayer
-local nbbot = #bots
-local char = plr.Character or plr.CharacterAdded:Wait()
-plr.CharacterAdded:Connect(function(c) char = c end)
-local scriptActive = true
-local offset = math.random(0, 360)
-local worm = false
-local towerbool = false
-local orbitbool = false
-local following = false
-local orbitConnection
-local orbitbool = false
-
-local channel = 1
-local Bricks = workspace:FindFirstChild("Bricks")
-local RunService = game:GetService("RunService")
+-- SERVICES
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
 local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
-local RBXGeneral = TextChatService.TextChannels.RBXGeneral
-local ConnectedAdmins = {}
+-- IMPORTANT
+local plr = Players.LocalPlayer
+local char = plr.Character or plr.CharacterAdded:Wait()
+
+plr.CharacterAdded:Connect(function(c)
+	char = c
+end)
 RunService:Set3dRenderingEnabled(render)
+local nbbot = bots and #bots or 0
+local scriptActive = true
+local channel = 1
+local offset = math.random(0, 360)
+
+-- BOOLEANS
+local deleteBool = false
+local worm = false
+local towerbool = false
+local orbitbool = false
+local following = false
+local walkflinging = false
+-- CONNECTIONS
+local orbitConnection
+
+-- MISC
+local Bricks = workspace:FindFirstChild("Bricks")
+local RBXGeneral = TextChatService.TextChannels.RBXGeneral
+
+-- TABLES
+local ConnectedAdmins = {}
+
+
+
 
 if owner then
-	table.insert(ConnectedAdmins, Players:FindFirstChild(tostring(owner)))
+	table.insert(ConnectedAdmins, Players:FindFirstChild(tostring(owner)).Name)
 end
 
 if game.Players.LocalPlayer.Name == owner then return end
@@ -67,10 +83,11 @@ local index = table.find(bots, plr.Name)
 
 if not index then
 	warn("No index!")
+	return
 else
 	print("Found index:"..index)
 end
-
+print("csript run")
 local indexcircle = index and (360 / nbbot * index) or 0
 
 local function stop()
@@ -78,6 +95,7 @@ local function stop()
 	towerbool = false
 	following = false
 	orbitbool = false
+	workspace.Gravity = 196.2
 end
 local function fixHumanoid()
 	local humanoid = char:FindFirstChild("Humanoid")
@@ -265,24 +283,33 @@ end
 
 local function DeletePlayer(targetName)
 	if targetName == "" then return end
-	local target = Players:FindFirstChild(targetName)
+
+	local target = findPlayerByName(targetName)
 	if not target then return end
-	local tool = FindTool("Delete")
-	if tool then
+
+	local folder = Bricks:FindFirstChild(target.Name)
+	if not folder then return end
+	deleteBool = true
+	while true do
+		if not deleteBool then break end
+		local parts = folder:GetChildren()
+		if #parts == 0 then break end
+
+		local part = parts[math.random(1, #parts)]
+
+		local tool = FindTool("Delete")
+		if not tool then return end
+
 		tool.Parent = char
+
 		local remote = tool.Script.Event
-		local folder = Bricks:FindFirstChild(target.Name)
-		if folder then
-			for _, part in pairs(folder:GetChildren()) do
-				if part:IsA("BasePart") then
-					char:PivotTo(part.CFrame)
-					remote:FireServer(part, part.Position)
-					task.wait(0.075)
-				end
-			end
-		end
+		char:PivotTo(part.CFrame)
+		remote:FireServer(part, part.Position)
+		task.wait(0.05)
 	end
 end
+
+
 
 local function SetChannel(C)
 	if C ~= "" then return end
@@ -296,7 +323,7 @@ local function setPrefix(newPrefix)
 end
 
 local function align(targetName)
-	local target = Players:FindFirstChild(targetName)
+	local target = findPlayerByName(targetName)
 	if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
 		local rightVector = target.Character.HumanoidRootPart.CFrame.RightVector
 		local newCFrame = target.Character.HumanoidRootPart.CFrame + rightVector * (5 * index)
@@ -337,13 +364,13 @@ local function stopWorm()
 end
 
 local function tower(targetName)
-	local target = Players:FindFirstChild(targetName)
+	local target = findPlayerByName(targetName)
 	if target and target.Character then
 		towerbool = true
 		while towerbool do
 			task.wait()
 			if not towerbool then break end
-			
+
 			local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
 			if targetRoot then
 				local localRoot = char:FindFirstChild("HumanoidRootPart")
@@ -360,23 +387,79 @@ local function tower(targetName)
 	end
 end
 
+local function FlingAll()
+	while walkflinging do
+		local character = plr.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+
+		while not (character and character.Parent and root) do
+			RunService.Heartbeat:Wait()
+			character = plr.Character
+			root = character and character:FindFirstChild("HumanoidRootPart")
+		end
+
+		local eligiblePlayers = {}
+		for _, p in pairs(Players:GetPlayers()) do
+			if p ~= plr and not table.find(ConnectedAdmins, p) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+				table.insert(eligiblePlayers, p)
+			end
+		end
+
+		if #eligiblePlayers > 0 then
+			local target = eligiblePlayers[math.random(1, #eligiblePlayers)]
+			local targetRoot = target.Character.HumanoidRootPart
+			root.CFrame = targetRoot.CFrame + Vector3.new(0, 0, 0) -- teleport slightly above to avoid clipping
+		end
+
+		task.wait(2) -- wait 2 seconds before next teleport
+	end
+end
+
 local function wormCmd(targetName)
-	local target = Players:FindFirstChild(targetName)
+	local target = findPlayerByName(targetName)
 	if target and target.Character then
 		worm = true
 		wormFunction(target)
 	end
 end
 
+local function admin(targetName)
+	local target = findPlayerByName(targetName)
+	if target then
+		table.insert(ConnectedAdmins, target.Name)
+		chatMessage("Added ".. target.Name.. " to the admin list")
+	end
+end
+local function removeAdmin(targetName)
+	local target = findPlayerByName(targetName)
+	if target then
+		local index = table.find(ConnectedAdmins, target.Name)
+		if index then
+			table.remove(ConnectedAdmins, index)
+			chatMessage("Removed ".. target.Name.. " from the admin list")
+		end
+	end
+end
 -- CONNECT LISTENER
-local function ConnectListener(player)
-	player.Chatted:Connect(function(msg :string)
-		msg = string.lower(msg)
-		if not scriptActive then return end
-		if not table.find(ConnectedAdmins, player) then return end
-		if msg:sub(1, #prefix) ~= prefix then return end
+local function ConnectListener()
 
-		local content = msg:sub(#prefix + 1)
+	TextChatService.OnIncomingMessage = function(msg)
+		if not msg.TextSource then return end
+
+		local player = Players:GetPlayerByUserId(msg.TextSource.UserId)
+		if not player then return end
+
+		if not scriptActive then return end
+		if not table.find(ConnectedAdmins, player.Name) then return end
+
+		local text = msg.Text
+		if not text then return end
+
+		text = text:lower()
+
+		if text:sub(1, #prefix) ~= prefix then return end
+
+		local content = text:sub(#prefix + 1)
 		local space = content:find(" ")
 		local cmd = space and content:sub(1, space - 1) or content
 		local args = space and content:sub(space + 1) or ""
@@ -398,6 +481,9 @@ local function ConnectListener(player)
 		elseif cmd == "stop" then stop()
 		elseif cmd == "tower" then tower(args)
 		elseif cmd == "worm" then wormCmd(args)
+		elseif cmd == "circle" then tpcircle(args)
+		elseif cmd == "admin" then admin(args)
+		elseif cmd == "removeadmin" then removeAdmin(args)
 		elseif cmd == "orbit" then
 			local split = args:split(" ")
 			local targetName = split[1]
@@ -408,11 +494,8 @@ local function ConnectListener(player)
 			if targetPlayer then
 				orbitByIndex(targetPlayer, speed, r)
 			end
-		elseif cmd == "circle" then tpcircle(args) end
-	end)
+		elseif cmd == "r" then FlingAll() end
+	end
 end
 
-for _, player in ipairs(Players:GetPlayers()) do
-	ConnectListener(player)
-end
-Players.PlayerAdded:Connect(ConnectListener)
+ConnectListener()
