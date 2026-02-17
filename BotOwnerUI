@@ -1,7 +1,7 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local starterGui = game:GetService("StarterGui")
-starterGui:SetCore("SendNotification, {
+starterGui:SetCore("SendNotification", {
 	Title = "Debug auto enabled",
 	Text = "you dont get a fucking say cuz i need consoles for feedback",
 	Duration = 5
