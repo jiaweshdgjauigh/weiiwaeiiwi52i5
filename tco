@@ -389,10 +389,57 @@ local Button = Tab:CreateButton({
 				Text = "for debugging",
 				Duration = 5
 			})
-			task.wait(0.3)
+			task.wait(0.15)
 		end
 
 		--hrp.Anchored = false
+	end,
+})
+
+local Button = Tab:CreateButton({
+	Name = "toxic repstorage part",
+	Callback = function()
+		local repStorage = game.ReplicatedStorage:WaitForChild("Brick")
+		resetPaint()
+		event:FireServer(
+			repStorage,
+			"Front",
+			vector.create(repStorage.Position.X, repStorage.Position.Y, repStorage.Position.Z),
+			"both \240\159\164\157",
+			Color3.new(1,1,1),
+			"toxic",
+			""
+		)
+	end,
+})
+
+local Button = Tab:CreateButton({
+	Name = "unanchor repstorage part",
+	Callback = function()
+		local repStorage = game.ReplicatedStorage:WaitForChild("Brick")
+		resetPaint()
+		event:FireServer(
+			repStorage,
+			"Front",
+			vector.create(repStorage.Position.X, repStorage.Position.Y, repStorage.Position.Z),
+			"both \240\159\164\157",
+			Color3.new(1,1,1),
+			"anchor",
+			""
+		)
+	end,
+})
+
+local Button = Tab:CreateButton({
+	Name = "BREAK BKIT (EQUIP DELETE BEFORE RUN, UNEQUIP DELETE AFTER RUN)",
+	Callback = function()
+		local args = {
+			game.ReplicatedStorage.Brick,
+			game.ReplicatedStorage.Brick.Position
+		}
+		
+		game:GetService("Players").LocalPlayer:WaitForChild("Backpack"):WaitForChild("Delete"):WaitForChild("Script"):WaitForChild("Event"):FireServer(unpack(args))
+
 	end,
 })
 
