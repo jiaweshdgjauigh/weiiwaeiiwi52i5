@@ -1,7 +1,7 @@
 -- SET UP
 local owner = getgenv().Owner
 local bots = getgenv().Bots
-local prefix = getgenv().Prefix or "."
+local prefix = getgenv().Prefix or ";"
 local render = getgenv().render
 -- SERVICES
 local Players = game:GetService("Players")
