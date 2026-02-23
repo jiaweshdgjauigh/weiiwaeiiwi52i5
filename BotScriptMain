@@ -3,6 +3,8 @@ local owner = getgenv().Owner
 local bots = getgenv().Bots
 local prefix = getgenv().Prefix or ";"
 local render = getgenv().render
+local useServerForCmds = getgenv().useServer
+local server = getgenv().server or "http://localhost:2000"  
 -- SERVICES
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -22,6 +24,7 @@ local nbbot = bots and #bots or 0
 local scriptActive = true
 local channel = 1
 local offset = math.random(0, 360)
+local lastCmd = ""
 
 -- BOOLEANS
 local deleteBool = false
@@ -46,8 +49,6 @@ local ConnectedAdmins = {}
 if owner then
 	table.insert(ConnectedAdmins, Players:FindFirstChild(tostring(owner)).Name)
 end
-
-if game.Players.LocalPlayer.Name == owner then return end
 
 local function findPlayerByName(partialName)
 	if partialName:lower() == "me" then
@@ -79,6 +80,7 @@ local function findPlayerByName(partialName)
 
 	return bestMatch
 end
+
 local index = table.find(bots, plr.Name)
 
 if not index then
@@ -87,7 +89,10 @@ if not index then
 else
 	print("Found index:"..index)
 end
-print("csript run")
+
+
+
+
 local indexcircle = index and (360 / nbbot * index) or 0
 
 local function stop()
@@ -499,3 +504,65 @@ local function ConnectListener()
 end
 
 ConnectListener()
+
+-- SERVER (LOCALHOST, JAVASCRIPT)
+task.spawn(function()
+	local lastCmd = ""
+
+	while true do
+		task.wait(1)
+		print("currently running")
+		if useServerForCmds and server then
+			local success, cmd = pcall(function()
+				return game:HttpGet(server.."/get")
+			end)
+
+			if success and cmd and cmd ~= lastCmd and cmd ~= "none" then
+				lastCmd = cmd
+				print("Received command:", cmd)
+
+				-- SPLIT COMMAND + ARGS
+				local space = cmd:find(" ")
+				local mainCmd = space and cmd:sub(1, space - 1) or cmd
+				local args = space and cmd:sub(space + 1) or ""
+
+				mainCmd = mainCmd:lower() -- normalize
+
+				-- RUN THE SAME FUNCTIONS AS CHAT
+				if mainCmd == "status" then status()
+				elseif mainCmd == "fix" then fix()
+				elseif mainCmd == "index" then sendIndex()
+				elseif mainCmd == "say" then say(args)
+				elseif mainCmd == "rendering" then setRendering(args)
+				elseif mainCmd:match("^dance") then dance(cmd)
+				elseif mainCmd == "vdonate" then vDonate(args)
+				elseif mainCmd == "delete" then DeletePlayer(args)
+				elseif mainCmd == "setprefix" then setPrefix(args)
+				elseif mainCmd == "align" then align(args)
+				elseif mainCmd == "version" then version()
+				elseif mainCmd == "bring" then
+					local targetPlayer = Players:FindFirstChild(args)
+					if targetPlayer then bring(targetPlayer) end
+				elseif mainCmd == "jump" then jump()
+				elseif mainCmd == "disconnect" then disconnect()
+				elseif mainCmd == "stop" then stop()
+				elseif mainCmd == "tower" then tower(args)
+				elseif mainCmd == "worm" then wormCmd(args)
+				elseif mainCmd == "circle" then tpcircle(tonumber(args))
+				elseif mainCmd == "admin" then admin(args)
+				elseif mainCmd == "removeadmin" then removeAdmin(args)
+				elseif mainCmd == "orbit" then
+					local split = args:split(" ")
+					local targetName = split[1]
+					local speed = tonumber(split[2])
+					local r = tonumber(split[3])
+
+					local targetPlayer = Players:FindFirstChild(targetName)
+					if targetPlayer then
+						orbitByIndex(targetPlayer, speed, r)
+					end
+				elseif mainCmd == "r" then FlingAll() end
+			end
+		end
+	end
+end)
